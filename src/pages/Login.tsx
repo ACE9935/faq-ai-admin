@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/useAuth";
@@ -8,6 +8,7 @@ import Heading1 from "../components/Heading1";
 import GoogleButton from "../form-components/GoogleButton";
 import Button from "../tool-components/Button";
 import { Button as ShadcnButton } from "@/components/ui/button";
+import {useAdminAccess} from "../hooks/useAdminAccess";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
@@ -23,9 +24,10 @@ function Login() {
   const [resetEmail, setResetEmail] = useState("");
   const [isResetLoading, setIsResetLoading] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const { user: currentUser, signIn, signInWithGoogle, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
 
   const handleInputChange = (field: 'email' | 'password', value: string) => {
     setUser(prev => ({
@@ -33,6 +35,18 @@ function Login() {
       [field]: value
     }));
   };
+
+  useEffect(()=>{
+    if(adminLoading) return;
+    if(currentUser &&!isAdmin){
+      toast({
+        title: "Erreur de connexion",
+        description: "Accès refusé",
+        variant: "destructive",
+      });
+      signOut()
+    }
+  },[isAdmin, adminLoading, currentUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,10 +83,6 @@ function Login() {
   const handleGoogleSignUp = async () => {
     try {
       await signInWithGoogle();
-      toast({
-        title: "Connexion réussie",
-        description: "Bienvenue ! Vous êtes maintenant connecté.",
-      });
     } catch (error) {
       console.error('Error with Google login:', error);
       toast({

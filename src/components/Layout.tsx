@@ -7,7 +7,6 @@ import Button from '../tool-components/Button';
 import { Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Dashboard } from '@mui/icons-material';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,7 +15,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const { user, signOut } = useAuth();
-  const { isAdmin } = useAdminAccess();
+  const { isAdmin, loading: adminLoading } = useAdminAccess();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -59,7 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Link>
         
         <div className="flex items-center space-x-2">
-          {user ? (
+          {!adminLoading && <>{user ? (
             <> 
             {isAdmin && (
                 <Link to="/admin">
@@ -83,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 Connexion
               </Button>
             </Link>
-          )}
+          )}</>}
         </div>
       </header>
       

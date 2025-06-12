@@ -13,8 +13,8 @@ function App() {
 
   return (
   <QueryClientProvider client={queryClient}>
+  <Toaster />
   <AuthProvider>
-    <Toaster />
    <Router>
     <Layout>
       <Routes>
