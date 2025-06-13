@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from 'supabase/supabase';
+import {supabase} from 'supabase/supabase';
 
 export const useAdminAccess = () => {
   const { user, session } = useAuth();
@@ -16,14 +17,15 @@ export const useAdminAccess = () => {
       }
 
       try {
+        setLoading(true);
+        console.log('Checking admin access for user:', user.id);
+        
         const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
+          .rpc('is_current_user_admin');
 
-        if (error && error.code !== 'PGRST116') {
+        console.log('Admin check result:', { data, error });
+
+        if (error) {
           console.error('Error checking admin access:', error);
           setIsAdmin(false);
         } else {

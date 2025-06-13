@@ -18,17 +18,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAdmin, loading: adminLoading } = useAdminAccess();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-          setProfilePicture(user?.user_metadata?.avatar_url)
-      }
-    };
-
-    fetchUserProfile();
-  }, [user]);
 
   const handleSignOut = async () => {
     try {

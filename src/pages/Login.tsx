@@ -2,14 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/useAuth";
-import {supabase} from "supabase/supabase";
 import BasicInput from "../tool-components/BasicInput";
 import Heading1 from "../components/Heading1";
 import GoogleButton from "../form-components/GoogleButton";
 import Button from "../tool-components/Button";
-import { Button as ShadcnButton } from "@/components/ui/button";
 import {useAdminAccess} from "../hooks/useAdminAccess";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 
@@ -21,10 +18,7 @@ function Login() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showError, setShowError] = useState<null | string>(null);
-  const [resetEmail, setResetEmail] = useState("");
-  const [isResetLoading, setIsResetLoading] = useState(false);
-  const [showResetDialog, setShowResetDialog] = useState(false);
-  const { user: currentUser, signIn, signInWithGoogle, signOut } = useAuth();
+  const { user: currentUser, signIn, signInWithGoogle, signOut, loading:userLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isAdmin, loading: adminLoading } = useAdminAccess();
@@ -35,18 +29,6 @@ function Login() {
       [field]: value
     }));
   };
-
-  useEffect(()=>{
-    if(adminLoading) return;
-    if(currentUser &&!isAdmin){
-      toast({
-        title: "Erreur de connexion",
-        description: "Accès refusé",
-        variant: "destructive",
-      });
-      signOut()
-    }
-  },[isAdmin, adminLoading, currentUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +64,7 @@ function Login() {
 
   const handleGoogleSignUp = async () => {
     try {
+      setIsLoading(true);
       await signInWithGoogle();
     } catch (error) {
       console.error('Error with Google login:', error);
@@ -90,51 +73,8 @@ function Login() {
         description: "Une erreur est survenue lors de la connexion avec Google",
         variant: "destructive",
       });
-    }
-  };
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsResetLoading(true);
-
-    if (!resetEmail) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer votre adresse e-mail",
-        variant: "destructive",
-      });
-      setIsResetLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        toast({
-          title: "Erreur",
-          description: error.message || "Impossible d'envoyer l'e-mail de réinitialisation",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "E-mail envoyé",
-          description: "Vérifiez votre boîte e-mail pour réinitialiser votre mot de passe",
-        });
-        setShowResetDialog(false);
-        setResetEmail("");
-      }
-    } catch (error) {
-      console.error('Error sending reset email:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi de l'e-mail",
-        variant: "destructive",
-      });
-    } finally {
-      setIsResetLoading(false);
+    }finally{
+      setIsLoading(false);
     }
   };
 
@@ -174,49 +114,6 @@ function Login() {
             <AlertTitle>Erreur de connexion</AlertTitle>
             {showError}
         </Alert>}
-
-        <div className="text-center">
-          <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-            <DialogTrigger asChild>
-              <ShadcnButton variant="link" className="text-sm text-faq-gradient hover:underline p-0 cursor-pointer">
-                Mot de passe oublié ?
-              </ShadcnButton>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Réinitialiser le mot de passe</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handlePasswordReset} className="space-y-4">
-                <BasicInput
-                  type="email"
-                  label=""
-                  placeholder="Entrez votre adresse e-mail"
-                  value={resetEmail}
-                  onChange={(value: string) => setResetEmail(value)}
-                  required
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setShowResetDialog(false);
-                      setResetEmail("");
-                    }}
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isResetLoading}
-                  >
-                    {isResetLoading ? "Envoi..." : "Envoyer"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
         
       </form>
     </main>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from "@/hooks/use-toast";
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 
 interface AdminProtectedRouteProps {
@@ -11,7 +10,6 @@ interface AdminProtectedRouteProps {
 const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminAccess();
-  const { toast } = useToast();
   
   if (authLoading || adminLoading) {
     return (
